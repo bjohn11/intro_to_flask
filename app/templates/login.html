@@ -2,16 +2,11 @@
 
 {% block content %}
 
-<h1>Hello, new user. Please register here</h1>
-
+<h1>Login Page</h1>
 
 <form action="" method="POST">
     {{ form.hidden_tag() }}
     <div class="form-group">
-        <fieldset>
-            {{ form.username.label }}
-            {{ form.username(class='form-control', placeholder='Username') }}
-        </fieldset>
         <fieldset>
             {{ form.email.label }}
             {{ form.email(class='form-control', placeholder='Email') }}
@@ -21,8 +16,8 @@
             {{ form.password(class='form-control', placeholder= 'Password') }}
         </fieldset>
         <fieldset>
-            {{ form.confirm.label }}
-            {{ form.confirm(class='form-control', placeholder='Confirm Password') }}
+            {{ form.remember_me(class='form-check-input') }}
+            {{ form.remember_me.label }}
         </fieldset>
         {{ form.submit(class='btn-success btn-block')}}
     </div>
