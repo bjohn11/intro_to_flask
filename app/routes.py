@@ -28,7 +28,7 @@ def index():
 def register():
     form = UserInfoForm()
     context = {
-        'form': form
+        'form': form 
     }
     if request.method== 'POST' and form.validate():
         # get information
