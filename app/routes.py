@@ -1,28 +1,20 @@
 from app import app, db, Message, mail
 from flask import render_template, request, redirect, url_for, flash
 from werkzeug.security import check_password_hash
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required, current_user
 
 # Import for Forms
-from app.forms import UserInfoForm, LoginForm
+from app.forms import UserInfoForm, LoginForm, BlogPostForm
 
 #Import for models 
-from app.models import User
+from app.models import User, Post
 
 @app.route('/')
 def index():
     context = {
-        "customer_name" : "Brian",
-        "customer_username" : "bjohn11",
-        "items":{
-            1: 'Ice Cream',
-            2: 'Bread',
-            3: 'Lemons',
-            4: 'Cereal'
+        "posts": Post.query.all()
         }
-    }
     return render_template('index.html', **context)
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -101,3 +93,65 @@ def users():
         'users': User.query.all()
     }
     return render_template('users.html', **context)
+
+
+@app.route('/createposts', methods=['GET', 'POST'])
+@login_required
+def createposts():
+    form = BlogPostForm()
+    context = {
+        'form' : form
+    }
+    if request.method == 'POST' and form.validate():
+        # get information
+        title = form.title.data
+        content = form.content.data
+        user_id = current_user.id
+
+        # Create new instance of User
+        new_post = Post(title, content, user_id )
+
+        #add user to db
+        db.session.add(new_post)
+        db.session.commit()
+
+        #flash success message
+        flash('You have succesfully created a new post', 'success')
+
+        return redirect(url_for('createposts'))
+    return render_template('createposts.html', **context)
+
+
+@app.route('/posts/<int:post_id>')
+@login_required
+def post_detail(post_id):
+    post = Post.query.get_or_404(post_id)
+    return render_template('post_detail.html', post=post)
+
+@app.route('/posts/update/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def post_update(post_id):
+    update_form = BlogPostForm()
+    post = Post.query.get_or_404(post_id)
+    if request.method == 'POST' and update_form.validate():
+        title = update_form.title.data
+        content = update_form.content.data
+        user_id = current_user.id
+
+        post.title = title
+        post.content = content
+        post.user_id = user_id
+
+        db.session.commit()
+        return render_template(redirect(url_for('post_update', post_id=post.id)))
+
+    return render_template('post_update.html', form=update_form, post=post)
+
+@app.route('/posts/delete/<int:post_id>', methods=['POST'])
+@login_required
+def post_delete(post_id):
+    post = Post.query.get_or_404(post_id)
+
+    db.session.delete(post)
+    db.session.commit()
+    return redirect(url_for('index'))
